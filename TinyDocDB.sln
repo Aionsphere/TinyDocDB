@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TinyDocDB", "TinyDocDB\TinyDocDB.csproj", "{8BCAB635-7FC0-4B0B-B947-74679A48EEF4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TinyDocDB_ExampleClient", "TinyDocDB_ExampleClient\TinyDocDB_ExampleClient.csproj", "{832E1CCB-15A9-4A45-A5B2-9E5B27A146E2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8BCAB635-7FC0-4B0B-B947-74679A48EEF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BCAB635-7FC0-4B0B-B947-74679A48EEF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BCAB635-7FC0-4B0B-B947-74679A48EEF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BCAB635-7FC0-4B0B-B947-74679A48EEF4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{832E1CCB-15A9-4A45-A5B2-9E5B27A146E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{832E1CCB-15A9-4A45-A5B2-9E5B27A146E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{832E1CCB-15A9-4A45-A5B2-9E5B27A146E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{832E1CCB-15A9-4A45-A5B2-9E5B27A146E2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
