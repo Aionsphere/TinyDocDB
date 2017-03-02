@@ -70,7 +70,7 @@ namespace TinyDocDB
                 resourceUpdate.Stop();
             }
 
-            Task<string> getResourceTask = TinyDocDB_HttpRequestHelper.PerformResourceRequest("get", rURI, rKey, rPath, rTypeName, String.Empty);
+            Task<string> getResourceTask = TinyDocDB_HttpRequestHelper.PerformResourceRequest("get", rURI, rKey, rPath, rTypeName, rPath);
             try
             {
                 getResourceTask.Wait();

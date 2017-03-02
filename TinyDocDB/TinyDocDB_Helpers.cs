@@ -5,14 +5,14 @@ namespace TinyDocDB
 {
     internal static class TinyDocDB_Helpers
     {
-        internal static string GenerateMasterKeyAuthorizationSignature(string utcDate, string verb, string resourceId, string resourceType, string key, string keyType, string tokenVersion)
+        internal static string GenerateMasterKeyAuthorizationSignature(string utcDate, string verb, string resourceType, string resourceValue, string key, string keyType, string tokenVersion)
         {
             try
             {
                 var hmacSha256 = new System.Security.Cryptography.HMACSHA256 { Key = Convert.FromBase64String(key) };
                 string payLoad = verb.ToLowerInvariant() + "\n" + 
-                        (!String.IsNullOrWhiteSpace(resourceType) ? resourceType.ToLowerInvariant() + "\n" : "") +
-                        resourceId + "\n" + (!String.IsNullOrWhiteSpace(resourceType) ? "" : "\n") + 
+                        (!String.IsNullOrWhiteSpace(resourceType) ? resourceType.ToLowerInvariant() : "") + "\n" +
+                        (!String.IsNullOrWhiteSpace(resourceValue) ? resourceValue : "")  + "\n" +
                         utcDate.ToLowerInvariant() + "\n\n";
 
                 byte[] hashPayLoad = hmacSha256.ComputeHash(Encoding.UTF8.GetBytes(payLoad));

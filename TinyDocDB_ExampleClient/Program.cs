@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Configuration;
+using System.Text;
 using System.Timers;
 using TinyDocDB;
 
@@ -6,112 +8,136 @@ namespace TinyDocDB_ExampleClient
 {
     class Program
     {
-        /// <summary>
-        /// The below json should be added to DocumentDB under an existing database and collection
-        /// If you are creating from scratch, create a new DocumentDB instance and insert your database name
-        /// in the databaseName variable below, then create a new collection under that database and insert it
-        /// in the collectionName variable below, then create a new document under document explorer 
-        /// and paste the json below into it and save it.
-        /// 
-        ///    {
-        ///       "id": "demojson",
-        ///       "valueToChange": "1"
-        ///    }
-        ///    
-        /// Finally go to your database, and select 'Keys' and copy the URI and primary key values and put
-        /// them in the place holder variables below.
-        /// </summary>
-
-        private const string serviceURI = "https://YOURHOSTHERE.documents.azure.com";
-        private const string primaryKey = "YOUR PRIMARY KEY HERE";
-        private const string databaseName = "tempdb";
-        private const string collectionName = "tempcoll";
-        private const string documentId = "AndersenFamily";
-
-        private static Timer updateTimer;
-        private static bool flipFlop = false;
-        private static string jsonConfig = String.Empty;
-        private static string jsonConfig2 = String.Empty;
-        private static bool gotConfiguration = false;
-        private static TinyDocDB_Connection tinyDbConnection = null;
         static void Main(string[] args)
         {
-            tinyDbConnection = new TinyDocDB_Connection(serviceURI, primaryKey);
-            TinyDocDB_Resource resource = tinyDbConnection.StartMonitoringDocument(databaseName, collectionName, documentId);
-            Console.WriteLine(tinyDbConnection.GetDocument(databaseName, collectionName, documentId));
+            string documentDBEndpoint = ConfigurationManager.AppSettings["DocumentDBEndpoint"];
+            string documentDBAuthKey = ConfigurationManager.AppSettings["DocumentDBAuthKey"];
+
+            TinyDocDB_Connection tinyDbConnection = new TinyDocDB_Connection(documentDBEndpoint, documentDBAuthKey);
+
+            Console.WriteLine("Getting all databases from endpoint '" + documentDBEndpoint + "'");
+            Console.WriteLine("(If you are running this the first time, endpoint and auth key are configured in app.config)");
             Console.WriteLine();
+            Console.WriteLine(tinyDbConnection.GetAllDatabases());
             
-            resource.ResourceUpdate += Resource_ResourceUpdate;
-            resource.Start();
+            tinyDbConnection.CreateDatabase("tempdb");
+            Console.WriteLine();
+            Console.WriteLine("Created database 'tempdb'");
 
-            Program.updateTimer = new Timer(3000);
-            updateTimer.Elapsed += UpdateTimer_Elapsed;
+            Console.WriteLine();
+            Console.WriteLine("Get Database 'tempdb'");
+            Console.WriteLine();
+            Console.WriteLine(tinyDbConnection.GetDatabase("tempdb"));
 
-            Console.WriteLine("Press ESC to stop");
+            Console.WriteLine();
+            Console.WriteLine("Get all collections in 'tempdb'");
+            Console.WriteLine();
+            Console.WriteLine(tinyDbConnection.GetAllCollections("tempdb"));
+
+            tinyDbConnection.CreateCollection("tempdb", "tempcoll");
+            Console.WriteLine();
+            Console.WriteLine("Created collection 'tempcoll' on database 'tempdb'");
+
+            Console.WriteLine();
+            Console.WriteLine("Getting 'tempcoll' collection from 'tempdb'");
+            Console.WriteLine();
+            Console.WriteLine(tinyDbConnection.GetCollection("tempdb", "tempcoll"));
+
+            Console.WriteLine();
+            Console.WriteLine("Creating document 'WakefieldFamily' in collection 'tempcoll'");
+            Console.WriteLine();
+            string jsonWakefieldFamily = System.IO.File.ReadAllText(@"./wakefieldfamily.json");
+            Console.WriteLine(tinyDbConnection.CreateDocument("tempdb", "tempcoll", jsonWakefieldFamily));
+
+            Console.WriteLine();
+            Console.WriteLine("Getting document 'WakefieldFamily' from collection 'tempcoll'");
+            Console.WriteLine();
+            Console.WriteLine(tinyDbConnection.GetDocument("tempdb", "tempcoll", "WakefieldFamily"));
+
+            Console.WriteLine();
+            Console.WriteLine("Updating document 'WakefieldFamily' in collection 'tempcoll' from updated local document");
+            Console.WriteLine();
+            string updated_jsonWakefieldFamily = System.IO.File.ReadAllText(@"./updated_wakefieldfamily.json");
+            Console.WriteLine(tinyDbConnection.UpdateDocument("tempdb", "tempcoll", "WakefieldFamily", updated_jsonWakefieldFamily));
+
+            Console.WriteLine();
+            Console.WriteLine("Creating document 'AndersonFamily' in collection 'tempcoll'");
+            Console.WriteLine();
+            string jsonAndersonFamily = System.IO.File.ReadAllText(@"./andersonfamily.json");
+            Console.WriteLine(tinyDbConnection.CreateDocument("tempdb", "tempcoll", jsonAndersonFamily));
+
+            Console.WriteLine();
+            Console.WriteLine("Get all documents in 'tempcoll'");
+            Console.WriteLine();
+            Console.WriteLine(tinyDbConnection.GetAllDocuments("tempdb", "tempcoll"));
+
+            Console.WriteLine();
+            Console.WriteLine("executing json select query on collection 'tempcoll'");
+            Console.WriteLine();
+            //   This is the json query we read in from jsonselect.json - here for quick reference
+            //
+            //          {
+            //                "query": "SELECT * FROM Families f WHERE f.id = @familyId",     
+            //                "parameters": [
+            //                    {"name": "@familyId", "value": "AndersenFamily"}         
+            //                ] 
+            //           }
+            string jsonQuery = System.IO.File.ReadAllText(@"./jsonselect.json");
+            Console.WriteLine(tinyDbConnection.QueryCollection("tempdb", "tempcoll", jsonQuery));
+
+
+            Console.WriteLine();
+            Console.WriteLine("executing json select with join on collection 'tempcoll'");
+            Console.WriteLine();
+            //   This is the json query we read in from jsonselectwithjoin.json - here for quick reference
+            //          {
+            //                "query": "SELECT 
+            //                             f.id AS familyName, 
+            //                 c.givenName AS childGivenName, 
+            //                 c.firstName AS childFirstName, 
+            //                 p.givenName AS petName
+            //              FROM Families f
+            //                          JOIN c IN f.children
+            //              JOIN p in c.pets",     
+            //                "parameters": []
+            //           }
+            string jsonQuery2 = System.IO.File.ReadAllText(@"./jsonselectwithjoin.json");
+            Console.WriteLine(tinyDbConnection.QueryCollection("tempdb", "tempcoll", jsonQuery2));
+
+            Console.WriteLine("In DocumentDB change something (dont break the json ;) in the AndersonFamily document tempdb / tempcoll / AndersonFamily");
+            Console.WriteLine("You can change it from the Document DB Instances Document Browser in the Azure Portal.");
+            Console.WriteLine("You should receive an event which will display the updated document!");
+            Console.WriteLine("Press ESC to stop (at which time I'll delete everything I created!");
+            TinyDocDB_Resource tinyResource = tinyDbConnection.StartMonitoringDocument("tempdb", "tempcoll", "AndersenFamily");
+            tinyResource.ResourceUpdate += TinyResource_ResourceUpdate;
+            tinyResource.Start();
+
             do
             {
             } while (Console.ReadKey(true).Key != ConsoleKey.Escape);
 
-            if (updateTimer != null)
-            {
-                updateTimer.Stop();
-                updateTimer = null;
-            }
-            
-            if (resource != null)
-            {
-                resource.Stop();
-                resource.ResourceUpdate -= Resource_ResourceUpdate;
-                resource = null;
-            }
+            tinyDbConnection.DeleteDocument("tempdb", "tempcoll", "WakefieldFamily");
+            Console.WriteLine();
+            Console.WriteLine("Deleted document 'WakefieldFamily' on collection 'tempcoll'");
 
-            if (tinyDbConnection != null)
-            { 
-                tinyDbConnection = null;
-            }
+            tinyDbConnection.DeleteCollection("tempdb", "tempcoll");
+            Console.WriteLine();
+            Console.WriteLine("Deleted collection 'tempcoll' on database 'tempdb'");
+
+            tinyDbConnection.DeleteDatabase("tempdb");
+            Console.WriteLine();
+            Console.WriteLine("Deleted database 'tempdb' from endpoint '" + documentDBEndpoint + "'");
         }
 
-        private static void UpdateTimer_Elapsed(object sender, ElapsedEventArgs e)
+        private static void TinyResource_ResourceUpdate(object sender, TinyDocDB_UpdateEventArgs e)
         {
-            updateTimer.Stop();
-            if (flipFlop)
-            {
-                string result = tinyDbConnection.UpdateDocument(databaseName, collectionName, documentId, jsonConfig);
-            }
-            else
-            {
-                string result = tinyDbConnection.UpdateDocument(databaseName, collectionName, documentId, jsonConfig2);
-            }
-
-            flipFlop = !flipFlop;
-            updateTimer.Start();
-        }
-
-        private static void Resource_ResourceUpdate(object sender, TinyDocDB_UpdateEventArgs e)
-        {
-            Console.WriteLine("Configuration Change at {0}", e.UpdatedTime);
-            Console.WriteLine("New Configuration follows..");
-            Console.WriteLine("...");
-            string tempProdId = e.updatedResourceOutput.ToString();
-            int i = tempProdId.IndexOf("chain");
-            tempProdId = tempProdId.Substring(1, i);
-            Console.WriteLine(tempProdId);
-            if (!gotConfiguration)
-            {
-                jsonConfig = e.updatedResourceOutput;
-                int j = e.updatedResourceOutput.IndexOf("56");
-                if (j < 1)
-                {
-                    jsonConfig2 = jsonConfig.Replace("55", "56");
-                }
-                else
-                {
-                    jsonConfig2 = jsonConfig.Replace("56", "55");
-                }
-
-                gotConfiguration = true;
-                updateTimer.Start();
-            }
+            Console.WriteLine();
+            Console.WriteLine("***************************************************");
+            Console.WriteLine("Document Update Received " + e.updatedResourceOutput);
+            Console.WriteLine("***************************************************");
+            Console.WriteLine();
+            Console.WriteLine("Press ESC to stop (at which time I'll delete everything I created!");
+            Console.WriteLine();
         }
     }
 }

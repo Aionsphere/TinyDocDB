@@ -1,0 +1,9 @@
+﻿{
+  "query": "SELECT * FROM Families f WHERE f.id = @familyId",
+  "parameters": [
+    {
+      "name": "@familyId",
+      "value": "AndersenFamily"
+    }
+  ]
+}

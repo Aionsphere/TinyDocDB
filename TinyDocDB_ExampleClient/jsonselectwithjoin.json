@@ -1,0 +1,11 @@
+﻿{      
+    "query": "SELECT 
+                 f.id AS familyName, 
+                 c.givenName AS childGivenName, 
+                 c.firstName AS childFirstName, 
+                 p.givenName AS petName 
+              FROM Families f 
+              JOIN c IN f.children 
+              JOIN p in c.pets",     
+    "parameters": [] 
+}
